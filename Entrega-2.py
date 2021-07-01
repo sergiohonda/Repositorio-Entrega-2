@@ -40,8 +40,8 @@ def tratamento(valor, comando, n1, n2):
 def mostrar_cadastrados(lista, comando):
     print(30 * "-")
     print(comando)
-    for indice in range(len(lista)):
-        print("{}; ".format(lista[indice]))
+    for obj in lista:
+        print("{}; ".format(obj.nome))
     print(30 * "-")
 
 
@@ -51,13 +51,22 @@ class Materia:
 
 
 class Turma(Materia):
-    def __init__(self):
-        self.nome = input("Insira o nome da turma: ")
+    def __init__(self, nome, materia):
+        self.nome = nome
+        self.materia = materia
+    
+    def receber_professor(self, nome_professor):
+        self.professor = nome_professor
 
 
 class Professor(Turma):
+    turmas = []
+
     def __init__(self):
         self.nome = input("Insira o nome do professor: ")
+    
+    def receber_turma(self, nome_turma):
+        self.turmas.append(nome_turma)
 
 
 class Aluno(Turma):
@@ -76,18 +85,15 @@ def main():
         resp = tratamento(resp, "Digite a opção desejada: ", 1, 8)
 
         if resp == 1:
-            materia_auxiliar = Materia()
-            lista_materias.append(materia_auxiliar.nome)
+            lista_materias.append(Materia())
             print(30 * "-")
 
         elif resp == 2:
-            professor_auxiliar = Professor()
-            lista_professores.append(professor_auxiliar.nome)
+            lista_professores.append(Professor())
             print(30 * "-")
 
         elif resp == 3:
-            aluno_auxiliar = Aluno()
-            lista_alunos.append(aluno_auxiliar.nome)
+            lista_alunos.append(Aluno())
             print(30 * "-")
 
         elif resp == 4:
@@ -101,15 +107,41 @@ def main():
 
         elif resp == 7:
             while True:
+                print(30 * "-")
                 mostrar_menu2()
                 resp = input("Digite a opção desejada: ")
                 resp = tratamento(resp, "Digite a opção desejada: ", 1, 8)
 
                 if resp == 1:
-                    pass
+                    if len(lista_materias) == 0:
+                        print("Nenhuma matéria foi cadastrada por enquanto.")
+                        print("Cadastre uma matéria primeiro para poder cadastrar uma turma.")
+                        break
+
+                    else:
+                        nome = input("Insira o nome da turma: ")
+                        mostrar_cadastrados(lista_materias, "As matérias cadastradas são: ")
+                        numero = input("Digite um valor entre 1 e {} para identificar a matéria correspondente: ".format(len(lista_materias)))
+                        numero = tratamento(numero, "Digite a opção desejada: ", 1, len(lista_materias))
+                        lista_turmas.append(Turma(nome, lista_materias[numero - 1].nome))
 
                 elif resp == 2:
-                    pass
+                    if len(lista_professores) == 0:
+                        print("Nenhum professor foi cadastrado por enquanto.")
+                        print("Cadastre um professor primeiro para poder designá-lo a uma turma.")
+                        break
+
+                    else:
+                        mostrar_cadastrados(lista_turmas, "As turmas cadastradas são: ")
+                        numero_turma = input("Digite um valor entre 1 e {} para identificar a turma correspondente: ".format(len(lista_turmas)))
+                        numero_turma = tratamento(numero_turma, "Digite a opção desejada: ", 1, len(lista_turmas))
+
+                        mostrar_cadastrados(lista_professores, "Os professores cadastrados são: ")
+                        numero_professor = input("Digite um valor entre 1 e {} para identificar o professor correspondente: ".format(len(lista_professores)))
+                        numero_professor = tratamento(numero_professor, "Digite a opção desejada: ", 1, len(lista_professores))
+
+                        lista_turmas[numero_turma - 1].receber_professor(lista_professores[numero_professor - 1].nome)
+                        lista_professores[numero_professor - 1].receber_turma(lista_turmas[numero_turma - 1].nome)
 
                 elif resp == 3:
                     pass
