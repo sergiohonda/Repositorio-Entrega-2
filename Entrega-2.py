@@ -1,3 +1,6 @@
+import copy
+
+
 def mostrar_menu1():
     print("1 - Cadastro de uma nova matéria")
     print("2 - Cadastro de um novo professor")
@@ -37,6 +40,13 @@ def tratamento(valor, comando, n1, n2):
     return valor
 
 
+def tratamento_objetos(lista, nome):
+    for obj in lista:
+        if obj.nome == nome:
+            return 0
+    return 1
+
+
 def mostrar_cadastrados(lista, comando):
     print(30 * "-")
     print(comando)
@@ -45,12 +55,51 @@ def mostrar_cadastrados(lista, comando):
     print(30 * "-")
 
 
+def mostrar_lista_normal(lista, comando):
+    print(30 * "-")
+    print(comando)
+    for i in range(len(lista)):
+        print("{}; ".format(lista[i]))
+    print(30 * "-")
+
+
+def perguntar_numero(lista, nome):
+    numero_resultante = input("Digite um valor entre 1 e {} para identificar o(a) {} correspondente: ".format(len(lista), nome))
+    numero_resultante = tratamento(numero_resultante, "Digite a opção desejada: ", 1, len(lista))
+    return numero_resultante
+
+
+def procurar_nome(lista, nome):
+    for i in range(len(lista)):
+        if lista[i].nome == nome:
+            return i
+
+
+def listar_turmas(lista):
+    lista_auxiliar = copy.deepcopy(lista)
+    numero_alunos_turma = []
+    for i in range(len(lista_auxiliar)):
+        numero_alunos_turma.append(len(lista_auxiliar[i].alunos))
+    numero_turmas = len(lista_auxiliar)
+    while numero_turmas != 0:
+        indice_auxiliar = 0
+        for i in range(len(numero_alunos_turma)):
+            if numero_alunos_turma[i] > numero_alunos_turma[indice_auxiliar]:
+                indice_auxiliar = i
+        print("Turma: {}; Alunos inscritos: {}".format(lista_auxiliar[indice_auxiliar].nome, len(lista_auxiliar[indice_auxiliar].alunos)))
+        numero_turmas -= 1
+        lista_auxiliar.pop(indice_auxiliar)
+
+
 class Materia:
-    def __init__(self):
-        self.nome = input("Insira o nome da matéria: ")
+    def __init__(self, nome):
+        self.nome = nome
 
 
 class Turma(Materia):
+    alunos = []
+    notas = {}
+
     def __init__(self, nome, materia):
         self.nome = nome
         self.materia = materia
@@ -58,20 +107,44 @@ class Turma(Materia):
     def receber_professor(self, nome_professor):
         self.professor = nome_professor
 
+    def receber_aluno(self, nome_aluno):
+        self.alunos.append(nome_aluno)
+
+    def dar_notas(self):
+        for indice in range(len(self.alunos)):
+            self.notas[self.alunos[indice]] = input("Digite a nota do(a) aluno(a) {}: ".format(self.alunos[indice]))
+
+    def mostrar_alunos(self):
+        alunos_aux = copy.deepcopy(self.alunos)
+        sorted(alunos_aux)
+        print("Os alunos da turma {}, em ordem alfabética são: ".format(self.nome))
+        for i in range(len(alunos_aux)):
+            print("{}; ".format(alunos_aux[i]))
+
 
 class Professor(Turma):
     turmas = []
 
-    def __init__(self):
-        self.nome = input("Insira o nome do professor: ")
-    
+    def __init__(self, nome):
+        self.nome = nome
+
     def receber_turma(self, nome_turma):
         self.turmas.append(nome_turma)
 
 
 class Aluno(Turma):
-    def __init__(self):
-        self.nome = input("Insira o nome do aluno: ")
+    turmas = []
+
+    def __init__(self, nome):
+        self.nome = nome
+    
+    def receber_turma(self, nome_turma):
+        self.turmas.append(nome_turma)
+
+    def remover_turma(self, nome_turma):
+        for i in range(len(self.turmas)):
+            if self.turmas[i] == nome_turma:
+                self.turmas.pop(i)
 
 
 def main():
@@ -85,16 +158,31 @@ def main():
         resp = tratamento(resp, "Digite a opção desejada: ", 1, 8)
 
         if resp == 1:
-            lista_materias.append(Materia())
-            print(30 * "-")
+            nome = input("Insira o nome da matéria: ")
+            if tratamento_objetos(lista_materias, nome) == 0:
+                print("A matéria inserida já está cadastrada.")
+                print(30 * "-")
+            else:
+                lista_materias.append(Materia(nome))
+                print(30 * "-")
 
         elif resp == 2:
-            lista_professores.append(Professor())
-            print(30 * "-")
+            nome = input("Insira o nome do professor: ")
+            if tratamento_objetos(lista_professores, nome) == 0:
+                print("O professor inserido ja esta cadastrado.")
+                print(30 * "-")
+            else:
+                lista_professores.append(Professor(nome))
+                print(30 * "-")
 
         elif resp == 3:
-            lista_alunos.append(Aluno())
-            print(30 * "-")
+            nome = input("Insira o nome do aluno: ")
+            if tratamento_objetos(lista_alunos, nome) == 0:
+                print("O aluno inserido já está cadastrado.")
+                print(30 * "-")
+            else:
+                lista_alunos.append(Aluno(nome))
+                print(30 * "-")
 
         elif resp == 4:
             mostrar_cadastrados(lista_materias, "As matérias cadastradas são: ")
@@ -121,8 +209,7 @@ def main():
                     else:
                         nome = input("Insira o nome da turma: ")
                         mostrar_cadastrados(lista_materias, "As matérias cadastradas são: ")
-                        numero = input("Digite um valor entre 1 e {} para identificar a matéria correspondente: ".format(len(lista_materias)))
-                        numero = tratamento(numero, "Digite a opção desejada: ", 1, len(lista_materias))
+                        numero = perguntar_numero(lista_materias, "matéria")
                         lista_turmas.append(Turma(nome, lista_materias[numero - 1].nome))
 
                 elif resp == 2:
@@ -131,32 +218,70 @@ def main():
                         print("Cadastre um professor primeiro para poder designá-lo a uma turma.")
                         break
 
+                    elif len(lista_turmas) == 0:
+                        print("Nenhuma turma foi cadastrada por enquanto.")
+                        print("Cadastre uma turma primeiro para poder designar um professor a ela.")
+                        break
+
                     else:
                         mostrar_cadastrados(lista_turmas, "As turmas cadastradas são: ")
-                        numero_turma = input("Digite um valor entre 1 e {} para identificar a turma correspondente: ".format(len(lista_turmas)))
-                        numero_turma = tratamento(numero_turma, "Digite a opção desejada: ", 1, len(lista_turmas))
-
+                        numero_turma = perguntar_numero(lista_turmas, "turma")
                         mostrar_cadastrados(lista_professores, "Os professores cadastrados são: ")
-                        numero_professor = input("Digite um valor entre 1 e {} para identificar o professor correspondente: ".format(len(lista_professores)))
-                        numero_professor = tratamento(numero_professor, "Digite a opção desejada: ", 1, len(lista_professores))
+                        numero_professor = perguntar_numero(lista_professores, "professor")
 
                         lista_turmas[numero_turma - 1].receber_professor(lista_professores[numero_professor - 1].nome)
                         lista_professores[numero_professor - 1].receber_turma(lista_turmas[numero_turma - 1].nome)
 
                 elif resp == 3:
-                    pass
+                    if len(lista_alunos) == 0:
+                        print("Nenhum aluno foi cadastrado por enquanto.")
+                        print("Cadastre um aluno primeiro para poder designá-lo a uma turma.")
+                        break
+
+                    elif len(lista_turmas) == 0:
+                        print("Nenhuma turma foi cadastrada por enquanto.")
+                        print("Cadastre uma turma primeiro para poder designar um professor a ela.")
+                        break
+
+                    else:
+                        mostrar_cadastrados(lista_alunos, "Os alunos cadastrados são: ")
+                        numero_aluno = perguntar_numero(lista_alunos, "aluno")
+                        mostrar_cadastrados(lista_turmas, "As turmas cadastradas são: ")
+                        numero_turma = perguntar_numero(lista_turmas, "turma")
+
+                        lista_turmas[numero_turma - 1].receber_aluno(lista_alunos[numero_aluno - 1].nome)
 
                 elif resp == 4:
-                    pass
+                    if len(lista_alunos) == 0:
+                        print("Nenhum aluno foi cadastrado por enquanto.")
+                        print("Cadastre um aluno primeiro para poder designá-lo a uma turma.")
+                        break
+
+                    elif len(lista_turmas) == 0:
+                        print("Nenhuma turma foi cadastrada por enquanto.")
+                        print("Cadastre uma turma primeiro para poder designar um professor a ela.")
+                        break
+
+                    else:
+                        mostrar_cadastrados(lista_turmas, "As turmas cadastradas são: ")
+                        numero_turma = perguntar_numero(lista_turmas, "turma")
+                        mostrar_lista_normal(lista_turmas[numero_turma - 1].alunos, "Os alunos cadastrados nessa turma são: ")
+                        numero_aluno = perguntar_numero(lista_alunos, "aluno")
+
+                        lista_turmas[numero_turma - 1].alunos.pop(numero_aluno - 1)
 
                 elif resp == 5:
-                    pass
+                    mostrar_cadastrados(lista_turmas, "As turmas cadastradas são: ")
+                    numero_turma = perguntar_numero(lista_turmas, "turma")
+                    lista_turmas[numero_turma - 1].dar_notas()
 
                 elif resp == 6:
-                    pass
+                    mostrar_cadastrados(lista_turmas, "As turmas cadastradas são: ")
+                    numero_turma = perguntar_numero(lista_turmas, "turma")
+                    lista_turmas[numero_turma - 1].mostrar_alunos()
 
                 elif resp == 7:
-                    pass
+                    listar_turmas(lista_turmas)
 
                 elif resp == 8:
                     break
